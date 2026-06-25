@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # boil 一键安装脚本
-# 用法: curl -fsSL https://raw.githubusercontent.com/0xUnixIO/boil/main/install.sh | bash
+# 用法: curl -fsSL https://github.com/1719458182/boil/blob/main/install.sh | bash
 
 set -euo pipefail
 
