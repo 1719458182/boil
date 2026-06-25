@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # boil 一键安装脚本
-# 用法: curl -fsSL https://github.com/1719458182/boil/blob/main/install.sh | bash
+# 用法: curl -fsSL https://raw.githubusercontent.com/1719458182/boil/main/install.sh | bash
 
 set -euo pipefail
 
-REPO="1719458182/boil/blob"
+REPO="1719458182/boil"
 BIN_NAME="boil"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
