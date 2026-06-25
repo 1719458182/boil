@@ -3,6 +3,7 @@ mod bot;
 mod cli;
 mod config;
 mod core;
+mod monitor;
 mod service;
 mod streaming;
 mod timer;
@@ -98,25 +99,25 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// 系统服务入口：有 TG 跑 bot（含定时器），只有 cron 跑纯定时器，都没有则报错
+/// 系统服务入口：有 TG 跑 bot（含定时器和 TCP 健康检查），否则跑 TCP 健康检查和可选定时器
 async fn run_daemon(config: config::Config) -> anyhow::Result<()> {
     let has_tg = config.has_tg();
     let has_cron = config.change_cron.is_some();
 
-    anyhow::ensure!(
-        has_tg || has_cron,
-        "守护进程无事可做：请配置 Telegram Bot 或定时换 IP（boil timer \"0 */6 * * *\"）"
-    );
-
     if has_tg {
-        // bot::run 内部已处理 cron，一起跑
+        // bot::run 内部已处理 cron 和 TCP 健康检查，一起跑
         bot::run(config).await?;
     } else {
-        // 只有 cron，纯定时模式
-        println!("定时换 IP 模式启动，cron: {}", config.change_cron.as_deref().unwrap());
         use std::sync::Arc;
         let cfg = Arc::new(config);
-        let _sched = timer::start(cfg).await?;
+        let _monitor = monitor::start(cfg.clone());
+        let _sched = if has_cron {
+            println!("定时换 IP 模式启动，cron: {}", cfg.change_cron.as_deref().unwrap());
+            Some(timer::start(cfg).await?)
+        } else {
+            println!("TCP 健康检查模式启动，每 5 分钟检测 www.189.cn:80");
+            None
+        };
         // 阻塞保持进程存活
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
