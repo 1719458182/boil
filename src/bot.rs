@@ -48,6 +48,7 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
             log::error!("定时器启动失败: {e}");
         }
     }
+    let _monitor = crate::monitor::start(config.clone());
 
     let handler = dptree::entry()
         .branch(
